@@ -5,7 +5,7 @@ Standalone native music daemon for LoliAPP.
 ## Language
 
 - English: this file
-- Chinese: `README.zh-CN.md`
+- Chinese: [README.zh-CN.md](https://github.com/SkySight-666/musicd/blob/main/README.zh-CN.md)
 
 ## Goals
 
