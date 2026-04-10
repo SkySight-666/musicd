@@ -1,0 +1,83 @@
+name: Build musicd
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-s6:
+    name: Build S6
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          set -e
+          sudo apt-get update
+          sudo apt-get install -y wget xz-utils
+
+          TC_ROOT="$HOME/toolchain"
+          TC_DIR="$TC_ROOT/arm-unknown-linux-gnueabihf"
+          TC_ARCHIVE="/tmp/arm-unknown-linux-gnueabihf.xz"
+          TARGET=arm-unknown-linux-gnueabihf
+
+          mkdir -p "$TC_ROOT"
+          rm -rf "$TC_DIR"
+          wget -q https://github.com/SkySight-666/arm-buildroot-linux-gnueabihf/releases/download/1.0.0/arm-unknown-linux-gnueabihf.xz -O "$TC_ARCHIVE"
+          tar -xJf "$TC_ARCHIVE" -C "$TC_ROOT"
+
+          test -x "$TC_DIR/bin/$TARGET-gcc"
+          echo "CROSS_TOOLCHAIN_PREFIX=$TC_DIR/bin/$TARGET-" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: |
+          chmod +x ./build.sh
+          MUSICD_DEVICE=s6 ./build.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: musicd-s6
+          path: build/s6/musicd
+          if-no-files-found: error
+
+  build-a6:
+    name: Build A6
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          set -e
+          sudo apt-get update
+          sudo apt-get install -y wget bzip2
+
+          TC_ROOT="$HOME/toolchain"
+          TC_DIR="$TC_ROOT/armv7-eabihf--uclibc--bleeding-edge-2018.11-1"
+          TC_ARCHIVE="/tmp/armv7-eabihf--uclibc--bleeding-edge-2018.11-1.tar.bz2"
+          TARGET=arm-buildroot-linux-uclibcgnueabihf
+
+          mkdir -p "$TC_ROOT"
+          rm -rf "$TC_DIR"
+          wget -q https://github.com/penosext/Cloudpan/releases/download/toolchains/armv7-eabihf--uclibc--bleeding-edge-2018.11-1.tar.bz2 -O "$TC_ARCHIVE"
+          tar -xjf "$TC_ARCHIVE" -C "$TC_ROOT"
+
+          test -x "$TC_DIR/bin/$TARGET-gcc"
+          echo "CROSS_TOOLCHAIN_PREFIX=$TC_DIR/bin/$TARGET-" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: |
+          chmod +x ./build.sh
+          MUSICD_DEVICE=a6 ./build.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: musicd-a6
+          path: build/a6/musicd
+          if-no-files-found: error
