@@ -2,6 +2,11 @@
 
 Standalone native music daemon for LoliAPP.
 
+## Language
+
+- English: this file
+- Chinese: `README.zh-CN.md`
+
 ## Goals
 
 - Keep playback alive across pages
@@ -72,3 +77,8 @@ MUSICD_DEVICE=a6 ./build.sh
 1. Add progress event push instead of polling-only state reads
 2. Add lyric parsing / current line sync
 3. Add persistent queue / resume recovery
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 or later (`GPL-3.0-or-later`).
+See `LICENSE` for details.
