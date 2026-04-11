@@ -67,6 +67,7 @@ std::vector<AudioOutput> AudioOutputManager::DetectAlsaOutputs() {
   while (std::getline(stream, line)) {
     line = Trim(line);
     if (line.empty()) continue;
+    if (line.find("Loopback") != std::string::npos) continue;
 
     int card_number = -1;
     int device_number = 0;

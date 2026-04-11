@@ -128,10 +128,23 @@ void MusicDaemon::PrintStatus() const {
 }
 
 std::string MusicDaemon::HandleCommand(const std::string& request) {
-  const CommandArgs args = SplitCommand(request);
-  if (args.empty()) return "ERR empty command\n";
+  const std::string trimmed = Trim(request);
+  if (trimmed.empty()) return "ERR empty command\n";
 
-  const std::string& command = args[0];
+  std::string command;
+  std::string value;
+  const std::size_t first_space = trimmed.find_first_of(" \t");
+  if (first_space == std::string::npos) {
+    command = trimmed;
+  } else {
+    command = trimmed.substr(0, first_space);
+    value = Trim(trimmed.substr(first_space + 1));
+  }
+
+  CommandArgs args;
+  args.push_back(command);
+  if (!value.empty()) args.push_back(value);
+
   if (command == "GET_STATE") return HandleGetState();
   if (command == "PLAY") return HandlePlay(args);
   if (command == "ENQUEUE") return HandleEnqueue(args);

@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <cerrno>
+#include <cctype>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -21,7 +22,18 @@ void PrintUsage() {
 
 std::string BuildPayload(int argc, char** argv) {
   if (argc < 2) return "";
-  const std::string command = argv[1];
+  std::string command = argv[1];
+  for (char& ch : command) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+
+  auto join_args = [argc, argv](int begin) {
+    std::string joined;
+    for (int i = begin; i < argc; ++i) {
+      if (!joined.empty()) joined += " ";
+      joined += argv[i];
+    }
+    return joined;
+  };
+
   if (command == "state") return "GET_STATE\n";
   if (command == "outputs") return "LIST_OUTPUTS\n";
   if (command == "pause") return "PAUSE\n";
@@ -31,15 +43,15 @@ std::string BuildPayload(int argc, char** argv) {
   if (command == "quit") return "QUIT\n";
   if (command == "play") {
     if (argc < 3) return "";
-    return "PLAY " + std::string(argv[2]) + "\n";
+    return "PLAY " + join_args(2) + "\n";
   }
   if (command == "enqueue") {
     if (argc < 3) return "";
-    return "ENQUEUE " + std::string(argv[2]) + "\n";
+    return "ENQUEUE " + join_args(2) + "\n";
   }
   if (command == "set-output") {
     if (argc < 3) return "";
-    return "SET_OUTPUT " + std::string(argv[2]) + "\n";
+    return "SET_OUTPUT " + join_args(2) + "\n";
   }
   return "";
 }
