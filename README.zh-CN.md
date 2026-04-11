@@ -16,7 +16,7 @@
 - `src/playback_engine.cpp`: `ffmpeg | aplay` 播放链路
 - `src/audio_output_manager.cpp`: ALSA / BlueALSA 输出扫描
 - `include/musicd/music_daemon.h`: 守护进程接口
-- `bin/musicctl`: 本地调试控制脚本
+- `bin/musicctl`: 控制脚本（构建后自动复制到 `build/<device>/musicctl`）
 
 ## 已实现能力
 
@@ -48,9 +48,9 @@ cd /home/skysight/musicd
 另开一个终端：
 
 ```sh
-/home/skysight/musicd/bin/musicctl state
-/home/skysight/musicd/bin/musicctl outputs
-/home/skysight/musicd/bin/musicctl play 'https://example.com/test.mp3'
+/home/skysight/musicd/build/s6/musicctl state
+/home/skysight/musicd/build/s6/musicctl outputs
+/home/skysight/musicd/build/s6/musicctl play 'https://example.com/test.mp3'
 ```
 
 ## 交叉编译

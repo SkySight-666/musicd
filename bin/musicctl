@@ -18,9 +18,17 @@ case "$command_name" in
     payload="LIST_OUTPUTS"
     ;;
   play)
+    if [ -z "${1:-}" ]; then
+      echo "PLAY requires URL" >&2
+      exit 1
+    fi
     payload="PLAY $1"
     ;;
   enqueue)
+    if [ -z "${1:-}" ]; then
+      echo "ENQUEUE requires URL" >&2
+      exit 1
+    fi
     payload="ENQUEUE $1"
     ;;
   pause)
@@ -36,6 +44,10 @@ case "$command_name" in
     payload="NEXT"
     ;;
   set-output)
+    if [ -z "${1:-}" ]; then
+      echo "SET_OUTPUT requires device name" >&2
+      exit 1
+    fi
     payload="SET_OUTPUT $1"
     ;;
   quit)
@@ -47,9 +59,23 @@ case "$command_name" in
     ;;
 esac
 
-if ! command -v nc >/dev/null 2>&1; then
-  echo "nc is required" >&2
-  exit 1
+send_with_nc() {
+  printf '%s\n' "$payload" | nc -U "$SOCKET_PATH"
+}
+
+send_with_socat() {
+  printf '%s\n' "$payload" | socat - "UNIX-CONNECT:$SOCKET_PATH"
+}
+
+if command -v nc >/dev/null 2>&1 && nc -h 2>&1 | grep -q -- '-U'; then
+  send_with_nc
+  exit $?
 fi
 
-printf '%s\n' "$payload" | nc -U "$SOCKET_PATH"
+if command -v socat >/dev/null 2>&1; then
+  send_with_socat
+  exit $?
+fi
+
+echo "No usable Unix socket client found. Install netcat (with -U) or socat." >&2
+exit 1

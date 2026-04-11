@@ -21,7 +21,7 @@ Standalone native music daemon for LoliAPP.
 - `src/playback_engine.cpp`: `ffmpeg | aplay` playback pipeline
 - `src/audio_output_manager.cpp`: ALSA / BlueALSA output scan
 - `include/musicd/music_daemon.h`: top-level daemon interface
-- `bin/musicctl`: local socket control helper
+- `bin/musicctl`: control script (auto-copied to `build/<device>/musicctl`)
 
 ## Working features
 
@@ -43,9 +43,9 @@ cd /home/skysight/musicd
 Another shell:
 
 ```sh
-/home/skysight/musicd/bin/musicctl state
-/home/skysight/musicd/bin/musicctl outputs
-/home/skysight/musicd/bin/musicctl play 'https://example.com/test.mp3'
+/home/skysight/musicd/build/s6/musicctl state
+/home/skysight/musicd/build/s6/musicctl outputs
+/home/skysight/musicd/build/s6/musicctl play 'https://example.com/test.mp3'
 ```
 
 ## Cross compile

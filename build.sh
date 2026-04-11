@@ -38,4 +38,7 @@ BUILD_DIR="$ROOT_DIR/build/$MUSICD_DEVICE"
 cmake -S "$ROOT_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR" -j"$(nproc)"
 
+install -m 0755 "$ROOT_DIR/bin/musicctl" "$BUILD_DIR/musicctl"
+
 echo "Built: $BUILD_DIR/musicd"
+echo "Script: $BUILD_DIR/musicctl"
