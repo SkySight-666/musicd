@@ -46,12 +46,27 @@ add_executable(musicd
   src/queue_manager.cpp
 )
 
+add_executable(musicctl
+  src/musicctl.cpp
+)
+
 target_include_directories(musicd
   PRIVATE
     include
 )
 
+target_include_directories(musicctl
+  PRIVATE
+    include
+)
+
 target_compile_options(musicd PRIVATE
+  -Wall
+  -Wextra
+  -Wpedantic
+)
+
+target_compile_options(musicctl PRIVATE
   -Wall
   -Wextra
   -Wpedantic

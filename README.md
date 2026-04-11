@@ -21,7 +21,7 @@ Standalone native music daemon for LoliAPP.
 - `src/playback_engine.cpp`: `ffmpeg | aplay` playback pipeline
 - `src/audio_output_manager.cpp`: ALSA / BlueALSA output scan
 - `include/musicd/music_daemon.h`: top-level daemon interface
-- `bin/musicctl`: control script (auto-copied to `build/<device>/musicctl`)
+- `src/musicctl.cpp`: native control client binary (`build/<device>/musicctl`)
 
 ## Working features
 

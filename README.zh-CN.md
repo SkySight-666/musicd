@@ -16,7 +16,7 @@
 - `src/playback_engine.cpp`: `ffmpeg | aplay` 播放链路
 - `src/audio_output_manager.cpp`: ALSA / BlueALSA 输出扫描
 - `include/musicd/music_daemon.h`: 守护进程接口
-- `bin/musicctl`: 控制脚本（构建后自动复制到 `build/<device>/musicctl`）
+- `src/musicctl.cpp`: 控制客户端（二进制输出 `build/<device>/musicctl`）
 
 ## 已实现能力
 
