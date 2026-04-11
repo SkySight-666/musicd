@@ -42,7 +42,9 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: musicd-s6
-          path: build/s6/musicd
+          path: |
+            build/s6/musicd
+            build/s6/musicctl
           if-no-files-found: error
 
   build-a6:
@@ -79,5 +81,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: musicd-a6
-          path: build/a6/musicd
+          path: |
+            build/a6/musicd
+            build/a6/musicctl
           if-no-files-found: error
