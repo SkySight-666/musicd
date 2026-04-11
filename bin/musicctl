@@ -59,22 +59,26 @@ case "$command_name" in
     ;;
 esac
 
-send_with_nc() {
-  printf '%s\n' "$payload" | nc -U "$SOCKET_PATH"
-}
+send_with_nc() { printf '%s\n' "$payload" | nc -U "$SOCKET_PATH"; }
+send_with_busybox_nc() { printf '%s\n' "$payload" | busybox nc -U "$SOCKET_PATH"; }
+send_with_socat() { printf '%s\n' "$payload" | socat - "UNIX-CONNECT:$SOCKET_PATH"; }
 
-send_with_socat() {
-  printf '%s\n' "$payload" | socat - "UNIX-CONNECT:$SOCKET_PATH"
-}
+if command -v nc >/dev/null 2>&1; then
+  if send_with_nc 2>/dev/null; then
+    exit 0
+  fi
+fi
 
-if command -v nc >/dev/null 2>&1 && nc -h 2>&1 | grep -q -- '-U'; then
-  send_with_nc
-  exit $?
+if command -v busybox >/dev/null 2>&1; then
+  if send_with_busybox_nc 2>/dev/null; then
+    exit 0
+  fi
 fi
 
 if command -v socat >/dev/null 2>&1; then
-  send_with_socat
-  exit $?
+  if send_with_socat 2>/dev/null; then
+    exit 0
+  fi
 fi
 
 echo "No usable Unix socket client found. Install netcat (with -U) or socat." >&2
