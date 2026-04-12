@@ -91,35 +91,33 @@ std::vector<AudioOutput> AudioOutputManager::DetectBluetoothOutputs() {
 
 std::vector<AudioOutput> AudioOutputManager::DetectAlsaOutputs() {
   std::vector<AudioOutput> outputs;
-  const std::string raw = RunCommand("aplay -l 2>/dev/null | grep '^card' | head -4");
-  std::istringstream stream(raw);
-  std::string line;
-  while (std::getline(stream, line)) {
-    line = Trim(line);
-    if (line.empty()) continue;
-    if (line.find("Loopback") != std::string::npos) continue;
 
-    int card_number = -1;
-    int device_number = 0;
-    if (std::sscanf(line.c_str(), "card %d:", &card_number) != 1) continue;
-
-    const std::size_t device_pos = line.find("device ");
-    if (device_pos != std::string::npos) {
-      std::sscanf(line.c_str() + device_pos, "device %d:", &device_number);
-    }
-
-    AudioOutput output;
-    output.type = AudioOutputType::kAlsa;
-    output.name = "hw:" + std::to_string(card_number) + "," + std::to_string(device_number);
-    output.label = "ALSA: " + line;
-    outputs.push_back(output);
+  // 1) Digital Type-C headset: present when card4 exists.
+  if (access("/sys/class/sound/card4", F_OK) == 0) {
+    AudioOutput digital;
+    digital.type = AudioOutputType::kAlsa;
+    digital.name = "tc_digital";
+    digital.label = "Type-C Headset (Digital)";
+    outputs.push_back(digital);
   }
 
-  AudioOutput fallback;
-  fallback.type = AudioOutputType::kAlsa;
-  fallback.name = "default";
-  fallback.label = "ALSA: default";
-  outputs.push_back(fallback);
+  // 2) Analog Type-C headset: inferred from gpio-463 level.
+  const std::string gpio_line = Trim(RunCommand("cat /sys/kernel/debug/gpio 2>/dev/null | grep gpio-463 | head -1"));
+  if (gpio_line.find(" lo") != std::string::npos || gpio_line.find("\tlo") != std::string::npos) {
+    AudioOutput analog;
+    analog.type = AudioOutputType::kAlsa;
+    analog.name = "tc_analog";
+    analog.label = "Type-C Headset (Analog)";
+    outputs.push_back(analog);
+  }
+
+  // 3) Internal speaker: always exposed as safe fallback route.
+  AudioOutput speaker;
+  speaker.type = AudioOutputType::kAlsa;
+  speaker.name = "speaker";
+  speaker.label = "Internal Speaker";
+  outputs.push_back(speaker);
+
   return outputs;
 }
 
