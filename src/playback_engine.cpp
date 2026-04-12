@@ -17,6 +17,49 @@ namespace {
 
 constexpr const char* kLogPath = "/tmp/musicd.log";
 
+std::string NormalizeOutputName(const std::string& raw) {
+  std::string out;
+  out.reserve(raw.size());
+  for (char ch : raw) {
+    if (ch >= 'A' && ch <= 'Z') out.push_back(static_cast<char>(ch - 'A' + 'a'));
+    else if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') continue;
+    else out.push_back(ch);
+  }
+  return out;
+}
+
+std::string ResolvePlaybackDeviceName(const std::string& raw) {
+  const std::string normalized = NormalizeOutputName(raw);
+
+  if (normalized.empty()) return "speaker";
+  if (normalized.rfind("bluealsa:", 0) == 0) return raw;
+
+  if (normalized == "speaker" ||
+      normalized == "default" ||
+      normalized == "hw:1,0" ||
+      normalized == "plughw:1,0") {
+    return "speaker";
+  }
+
+  if (normalized == "tc_analog" ||
+      normalized == "analog_hs" ||
+      normalized == "analoghs" ||
+      normalized == "hw:3,0" ||
+      normalized == "plughw:3,0") {
+    return "tc_analog";
+  }
+
+  if (normalized == "tc_digital" ||
+      normalized == "digital_hs" ||
+      normalized == "digitalhs" ||
+      normalized == "hw:4,0" ||
+      normalized == "plughw:4,0") {
+    return "tc_digital";
+  }
+
+  return raw;
+}
+
 }  // namespace
 
 PlaybackEngine::PlaybackEngine()
@@ -33,13 +76,14 @@ PlaybackEngine::~PlaybackEngine() {
 
 void PlaybackEngine::SetOutput(const AudioOutput& output) {
   output_ = output;
+  output_.name = ResolvePlaybackDeviceName(output.name);
 }
 
 bool PlaybackEngine::Play(const Track& track) {
   if (track.source_url.empty()) return false;
   Stop();
 
-  std::string device_name = output_.name.empty() ? "default" : output_.name;
+  std::string device_name = output_.name.empty() ? "speaker" : output_.name;
   std::ostringstream command;
   command
       << "ffmpeg -nostdin -hide_banner -loglevel error -i "
