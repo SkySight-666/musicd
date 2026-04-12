@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdio>
 #include <sstream>
+#include <unistd.h>
 
 namespace musicd {
 
@@ -26,12 +27,41 @@ std::string AudioOutputManager::Trim(const std::string& input) {
   return input.substr(begin, end - begin + 1);
 }
 
-std::string AudioOutputManager::BuildSignature(const std::vector<AudioOutput>& outputs) {
+std::string AudioOutputManager::BuildSignature(
+    const std::vector<AudioOutput>& outputs,
+    const std::string& hardware_state_fingerprint) {
   std::ostringstream builder;
   for (const AudioOutput& output : outputs) {
     builder << static_cast<int>(output.type) << ":" << output.name << ";";
   }
+  builder << "#hw:" << hardware_state_fingerprint;
   return builder.str();
+}
+
+std::string AudioOutputManager::DetectHardwareStateFingerprint() {
+  // Analog Type-C detect path from vendor logs: gpio-463 state in debug gpio dump.
+  std::string gpio_line = Trim(RunCommand("cat /sys/kernel/debug/gpio 2>/dev/null | grep gpio-463 | head -1"));
+  std::string gpio_state = "na";
+  if (!gpio_line.empty()) {
+    if (gpio_line.find(" hi") != std::string::npos || gpio_line.find("\thi") != std::string::npos) gpio_state = "hi";
+    else if (gpio_line.find(" lo") != std::string::npos || gpio_line.find("\tlo") != std::string::npos) gpio_state = "lo";
+    else gpio_state = gpio_line;
+  }
+
+  // Digital Type-C detect path from vendor logs: card4 existence.
+  const char* card4_path = "/sys/class/sound/card4";
+  const std::string card4_state = (access(card4_path, F_OK) == 0) ? "1" : "0";
+
+  // Legacy h2w detect path.
+  const std::string h2w_state = Trim(RunCommand("cat /sys/class/switch/h2w/state 2>/dev/null"));
+
+  std::ostringstream fingerprint;
+  fingerprint
+      << "gpio463=" << gpio_state
+      << ";card4=" << card4_state
+      << ";h2w=" << (h2w_state.empty() ? "na" : h2w_state)
+      << ";";
+  return fingerprint.str();
 }
 
 std::vector<AudioOutput> AudioOutputManager::DetectBluetoothOutputs() {
@@ -105,7 +135,7 @@ AudioOutputSnapshot AudioOutputManager::Scan() const {
   if (!bluetooth_outputs.empty()) snapshot.preferred = bluetooth_outputs.front();
   else if (!alsa_outputs.empty()) snapshot.preferred = alsa_outputs.front();
 
-  snapshot.signature = BuildSignature(snapshot.outputs);
+  snapshot.signature = BuildSignature(snapshot.outputs, DetectHardwareStateFingerprint());
   return snapshot;
 }
 

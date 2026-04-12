@@ -31,7 +31,10 @@ class AudioOutputManager {
  private:
   static std::string RunCommand(const std::string& command);
   static std::string Trim(const std::string& input);
-  static std::string BuildSignature(const std::vector<AudioOutput>& outputs);
+  static std::string BuildSignature(
+      const std::vector<AudioOutput>& outputs,
+      const std::string& hardware_state_fingerprint);
+  static std::string DetectHardwareStateFingerprint();
   static std::vector<AudioOutput> DetectBluetoothOutputs();
   static std::vector<AudioOutput> DetectAlsaOutputs();
 };
