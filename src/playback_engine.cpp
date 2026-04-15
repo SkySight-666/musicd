@@ -16,7 +16,6 @@ namespace musicd {
 namespace {
 
 constexpr const char* kLogPath = "/tmp/musicd.log";
-constexpr int kOutputSampleRate = 48000;
 
 std::string NormalizeOutputName(const std::string& raw) {
   std::string out;
@@ -89,10 +88,9 @@ bool PlaybackEngine::Play(const Track& track) {
   command
       << "ffmpeg -nostdin -hide_banner -loglevel error -i "
       << EscapeShellArg(track.source_url)
-      << " -vn -af aresample=" << kOutputSampleRate
-      << " -c:a pcm_s16le -f s16le -ar " << kOutputSampleRate << " -ac 2 -"
+      << " -vn -af aresample=44100 -c:a pcm_s16le -f s16le -ar 44100 -ac 2 -"
       << " 2>>" << EscapeShellArg(kLogPath)
-      << " | aplay -q -f S16_LE -r " << kOutputSampleRate << " -c 2 -D "
+      << " | aplay -q -f S16_LE -r 44100 -c 2 -D "
       << EscapeShellArg(device_name)
       << " -";
 
